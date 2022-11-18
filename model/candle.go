@@ -1,8 +1,8 @@
 package model
 
 type Candle struct {
-	Symbol string
-	Time   TimeInterval
+	Symbol string       `gorm:"primaryKey"`
+	Time   TimeInterval `gorm:"embedded"`
 	Open   Price
 	Close  Price
 	High   Price

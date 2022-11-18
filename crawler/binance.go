@@ -71,15 +71,15 @@ func (bc *binanceCrawler) getSpecificSymbol(symbol string) string {
 func (bc *binanceCrawler) parseCandle(raw []interface{}) *model.Candle {
 	c := &model.Candle{
 		Time: model.TimeInterval{
-			Open:  model.ParseTimeFromJSON(raw[0]),
-			Close: model.ParseTimeFromJSON(raw[6]).Add(time.Millisecond),
+			Start: model.ParseTimeFromJSON(raw[0]),
+			End:   model.ParseTimeFromJSON(raw[6]).Add(time.Millisecond),
 		},
 		Open:  model.ParsePriceFromJSON(raw[1]),
 		Close: model.ParsePriceFromJSON(raw[2]),
 		High:  model.ParsePriceFromJSON(raw[3]),
 		Low:   model.ParsePriceFromJSON(raw[4]),
 	}
-	c.Time.Duration = c.Time.Close.Sub(c.Time.Open)
+	c.Time.Duration = c.Time.End.Sub(c.Time.Start)
 
 	return c
 }
@@ -88,7 +88,7 @@ func (bc *binanceCrawler) GetCandles(symbol string, interval model.TimeInterval)
 	params := url.Values{}
 	params.Add("symbol", bc.getSpecificSymbol(symbol))
 	params.Add("interval", bc.getSpecificInterval(interval.Duration))
-	params.Add("startTime", fmt.Sprintf("%v", interval.Open.UnixMilli()))
+	params.Add("startTime", fmt.Sprintf("%v", interval.Start.UnixMilli()))
 	params.Add("limit", fmt.Sprintf("%v", interval.NumTicks()))
 
 	request := bc.baseURL + `/api/v3/klines?` + params.Encode()

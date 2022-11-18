@@ -10,13 +10,13 @@ var (
 )
 
 type TimeInterval struct {
-	Open     time.Time
-	Close    time.Time
-	Duration time.Duration
+	Start    time.Time     `gorm:"primaryKey"`
+	End      time.Time     ``
+	Duration time.Duration `gorm:"primaryKey"`
 }
 
 func (ti *TimeInterval) NumTicks() int64 {
-	return (ti.Close.UnixNano() - ti.Open.UnixNano()) / ti.Duration.Nanoseconds()
+	return (ti.End.UnixNano() - ti.Start.UnixNano()) / ti.Duration.Nanoseconds()
 }
 
 func ParseTimeFromJSON(v interface{}) time.Time {
