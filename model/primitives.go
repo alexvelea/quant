@@ -6,7 +6,9 @@ import (
 )
 
 var (
-	BTC = "BTC"
+	BTC  = "BTC"
+	AAPL = "AAPL"
+	SPX  = "SPX"
 )
 
 type TimeInterval struct {
@@ -39,6 +41,9 @@ type Price string
 func ParsePriceFromJSON(v interface{}) Price {
 	switch t := v.(type) {
 	case string:
+		if t[0] == '$' {
+			return Price(t[1:])
+		}
 		return Price(t)
 	default:
 		panic("unknown type")
