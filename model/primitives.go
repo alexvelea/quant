@@ -2,6 +2,7 @@ package model
 
 import (
 	"encoding/json"
+	"strconv"
 	"time"
 )
 
@@ -48,4 +49,37 @@ func ParsePriceFromJSON(v interface{}) Price {
 	default:
 		panic("unknown type")
 	}
+}
+
+func (p Price) Cmp(oth Price) int {
+	a, err := strconv.ParseFloat(string(p), 64)
+	if err != nil {
+		panic(err)
+	}
+	b, err := strconv.ParseFloat(string(oth), 64)
+	if err != nil {
+		panic(err)
+	}
+	if a == b {
+		return 0
+	}
+	if a < b {
+		return -1
+	}
+	return +1
+}
+
+func (p Price) GetQuote(quanty float64) float64 {
+	a, err := strconv.ParseFloat(string(p), 64)
+	if err != nil {
+		panic(err)
+	}
+	return quanty * a
+}
+func (p *Price) FromQuote(quote float64) float64 {
+	a, err := strconv.ParseFloat(string(*p), 64)
+	if err != nil {
+		panic(err)
+	}
+	return quote / a
 }

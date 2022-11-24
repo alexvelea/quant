@@ -17,6 +17,11 @@ func CrawlAndSave(crawler crawler.Crawler, symbol string, startTime time.Time, d
 			End:      startTime.Add(time.Duration(numCandles) * duration),
 			Duration: duration,
 		}
+		end := false
+		if interval.End.After(time.Now()) {
+			interval.End = time.Now()
+			end = true
+		}
 		candles := crawler.GetCandles(symbol, interval)
 
 		err := db.InsertCandles(candles)
@@ -25,5 +30,9 @@ func CrawlAndSave(crawler crawler.Crawler, symbol string, startTime time.Time, d
 		}
 
 		startTime = interval.End
+
+		if end {
+			break
+		}
 	}
 }

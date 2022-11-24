@@ -5,12 +5,14 @@ import (
 	"quant/crawler"
 	"quant/model"
 	"quant/storage"
+	"quant/utils"
 	"time"
 )
 
 func main() {
 	// start time -- 1st of Jan 2020
-	startTime := time.Unix(1577836800, 0).UTC()
+	startTime, err := time.Parse("2006-01-02", "2018-01-01")
+	utils.PanicIfErr(err)
 
 	nasdaq := crawler.NewNasdaq()
 	db := storage.NewStorage("./data/storage.db")
