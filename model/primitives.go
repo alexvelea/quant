@@ -2,6 +2,7 @@ package model
 
 import (
 	"encoding/json"
+	"quant/utils"
 	"strconv"
 	"time"
 )
@@ -24,9 +25,7 @@ func (ti *TimeInterval) NumTicks() int64 {
 
 func ParseTimeFromJSON(v interface{}) time.Time {
 	num, err := v.(json.Number).Int64()
-	if err != nil {
-		panic(err)
-	}
+	utils.PanicIfErr(err)
 
 	if num < 2000000000 {
 		return time.Unix(num, 0)
@@ -37,49 +36,25 @@ func ParseTimeFromJSON(v interface{}) time.Time {
 	}
 }
 
-type Price string
+type Price float64
 
 func ParsePriceFromJSON(v interface{}) Price {
 	switch t := v.(type) {
 	case string:
 		if t[0] == '$' {
-			return Price(t[1:])
+			t = t[1:]
 		}
-		return Price(t)
+		p, err := strconv.ParseFloat(t, 64)
+		utils.PanicIfErr(err)
+		return Price(p)
 	default:
 		panic("unknown type")
 	}
 }
 
-func (p Price) Cmp(oth Price) int {
-	a, err := strconv.ParseFloat(string(p), 64)
-	if err != nil {
-		panic(err)
-	}
-	b, err := strconv.ParseFloat(string(oth), 64)
-	if err != nil {
-		panic(err)
-	}
-	if a == b {
-		return 0
-	}
-	if a < b {
-		return -1
-	}
-	return +1
-}
-
 func (p Price) GetQuote(quanty float64) float64 {
-	a, err := strconv.ParseFloat(string(p), 64)
-	if err != nil {
-		panic(err)
-	}
-	return quanty * a
+	return quanty * float64(p)
 }
-func (p *Price) FromQuote(quote float64) float64 {
-	a, err := strconv.ParseFloat(string(*p), 64)
-	if err != nil {
-		panic(err)
-	}
-	return quote / a
+func (p Price) FromQuote(quote float64) float64 {
+	return quote / float64(p)
 }

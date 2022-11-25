@@ -4,6 +4,7 @@ import (
 	"quant/crawler"
 	"quant/model"
 	"quant/storage"
+	"quant/utils"
 	"time"
 )
 
@@ -25,9 +26,7 @@ func CrawlAndSave(crawler crawler.Crawler, symbol string, startTime time.Time, d
 		candles := crawler.GetCandles(symbol, interval)
 
 		err := db.InsertCandles(candles)
-		if err != nil {
-			panic(err)
-		}
+		utils.PanicIfErr(err)
 
 		startTime = interval.End
 

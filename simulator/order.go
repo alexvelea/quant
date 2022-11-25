@@ -21,9 +21,9 @@ type Order struct {
 
 func (o *Order) IsTriggeredBy(price model.Price) bool {
 	if o.Side == BUY {
-		return o.Price.Cmp(price) <= 0
+		return o.Price >= price
 	} else {
-		return o.Price.Cmp(price) >= 0
+		return o.Price <= price
 	}
 }
 

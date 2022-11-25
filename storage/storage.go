@@ -4,6 +4,7 @@ import (
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"quant/model"
+	"quant/utils"
 )
 
 type Storage struct {
@@ -12,14 +13,10 @@ type Storage struct {
 
 func NewStorage(sqliteDB string) *Storage {
 	db, err := gorm.Open(sqlite.Open(sqliteDB), &gorm.Config{})
-	if err != nil {
-		panic(err)
-	}
+	utils.PanicIfErr(err)
 
 	err = db.AutoMigrate(&model.Candle{})
-	if err != nil {
-		panic(err)
-	}
+	utils.PanicIfErr(err)
 
 	return &Storage{
 		db: db,

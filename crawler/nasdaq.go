@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/url"
 	"quant/model"
+	"quant/utils"
 	"reflect"
 	"time"
 )
@@ -107,9 +108,7 @@ func (bc *nasdaqCrawler) getSymbolAssetClass(symbol string) string {
 // parseCandle got from a JSON response into a generic model.Candle
 func (bc *nasdaqCrawler) parseCandle(raw map[string]string) *model.Candle {
 	start, err := time.Parse("01/02/2006", raw["date"])
-	if err != nil {
-		panic(err)
-	}
+	utils.PanicIfErr(err)
 
 	c := &model.Candle{
 		Time: model.TimeInterval{
@@ -168,20 +167,14 @@ func (bc *nasdaqCrawler) GetCandles(symbol string, interval model.TimeInterval) 
 	log.Printf(`performing nasdaq API call %v`, url)
 
 	req, err := http.NewRequest("GET", url, nil)
-	if err != nil {
-		panic(err)
-	}
+	utils.PanicIfErr(err)
 
 	req.Header.Set("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36")
 	resp, err := bc.client.Do(req)
-	if err != nil {
-		panic(err)
-	}
+	utils.PanicIfErr(err)
+
 	defer func(Body io.ReadCloser) {
-		err := Body.Close()
-		if err != nil {
-			panic(err)
-		}
+		utils.PanicIfErr(Body.Close())
 	}(resp.Body)
 
 	decoded := new(nasdaqCandleResponse)
