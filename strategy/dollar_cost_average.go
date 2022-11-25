@@ -15,7 +15,7 @@ var _ simulator.Consumer = (*dollarCostAverage)(nil)
 
 func (d dollarCostAverage) OnNewCandle(sim simulator.Interactor, start time.Time) {
 	sim.MarketOrder(&simulator.Order{
-		Quote: utils.Float64P(1.0),
+		Quote: utils.Float64P(utils.GetNormalizedMedianIncome(start)),
 		OnExecuted: func() {
 			log.Printf("Bought some at %v\n", sim.CurrentPrice())
 		},
