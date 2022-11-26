@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"quant/model"
 	"quant/simulator"
 	"quant/storage"
@@ -9,16 +8,18 @@ import (
 )
 
 func main() {
-	sim := simulator.NewSimulator()
+	symbol := model.AAPL
+	sim := simulator.NewSimulator([]string{symbol})
 
 	db := storage.NewStorage("./data/storage.db")
-	dca := strategy.NewDollarCostAverageStrategy()
+	dca := strategy.NewDollarCostAverageStrategy(symbol)
 
 	sim.Consumers = append(sim.Consumers, dca)
 
-	candles := db.GetCandles(model.AAPL)
+	candles := db.GetCandles(symbol)
 	for _, candle := range candles {
 		sim.ProcessCandle(candle)
 	}
-	fmt.Printf("profit %v\n", -100*sim.MarketValue()/sim.Portfolio.Quote)
+
+	sim.Portfolio.LogProfit(sim)
 }

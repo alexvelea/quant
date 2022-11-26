@@ -1,6 +1,10 @@
 package simulator
 
-import "quant/model"
+import (
+	"fmt"
+	"quant/model"
+	"quant/utils"
+)
 
 type Book struct {
 	Symbol       string
@@ -10,6 +14,8 @@ type Book struct {
 }
 
 func (b *Book) AddOrder(o *Order) {
+	utils.PanicIf(o.Symbol != b.Symbol, fmt.Errorf("symbol of order (%v) doesn't match symbol of book (%v)", o.Symbol, b.Symbol))
+
 	b.ActiveOrders = append(b.ActiveOrders, o)
 }
 

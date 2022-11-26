@@ -5,11 +5,16 @@ import (
 	"time"
 )
 
+type MarketViewer interface {
+	GetPrice(symbol string) model.Price
+}
+
 type Interactor interface {
 	AddOrder(order *Order)
 	MarketOrder(order *Order)
 
-	CurrentPrice() model.Price
+	MarketViewer
+	GetPortfolio() *Portfolio
 }
 
 type Consumer interface {

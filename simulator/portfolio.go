@@ -1,10 +1,13 @@
 package simulator
 
-import "quant/model"
+import (
+	"log"
+)
 
 type Portfolio struct {
-	Balance map[string]float64
-	Quote   float64
+	Balance        map[string]float64
+	AvailableQuote float64
+	InvestedQuote  float64
 }
 
 func (e *Portfolio) getQuantity(symbol string) float64 {
@@ -19,11 +22,13 @@ func (e *Portfolio) addQuantity(symbol string, diff float64) {
 func (e *Portfolio) ExecuteOrder(o *Order) {
 	quoteQTY := o.GetQuoteQty()
 	if o.Side == BUY {
-		e.Quote -= quoteQTY
+		e.AvailableQuote -= quoteQTY
 		e.addQuantity(o.Symbol, o.GetQuantity())
-	} else {
-		e.Quote += quoteQTY
+	} else if o.Side == SELL {
+		e.AvailableQuote += quoteQTY
 		e.addQuantity(o.Symbol, -o.GetQuantity())
+	} else {
+		panic("order side not specified")
 	}
 
 	if o.OnExecuted != nil {
@@ -31,10 +36,20 @@ func (e *Portfolio) ExecuteOrder(o *Order) {
 	}
 }
 
-func (e *Portfolio) TotalBalance(getPrice func(symbol string) model.Price) float64 {
-	total := e.Quote
+func (e *Portfolio) Invest(quote float64) {
+	e.AvailableQuote += quote
+	e.InvestedQuote += quote
+}
+
+func (e *Portfolio) LogProfit(market MarketViewer) {
+	balance := e.AvailableQuote
 	for symbol, quantity := range e.Balance {
-		total += getPrice(symbol).GetQuote(quantity)
+		balance += market.GetPrice(symbol).GetQuote(quantity)
 	}
-	return total
+	log.Printf("Invested:%v\n", e.InvestedQuote)
+	log.Printf("Available:%v\n", e.AvailableQuote)
+	for symbol, amount := range e.Balance {
+		log.Printf("%v -- %v @ %v\n", symbol, amount, market.GetPrice(symbol))
+	}
+	log.Printf("Profit margin:%v", (balance/e.InvestedQuote-1.0)*100)
 }
