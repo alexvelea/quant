@@ -8,11 +8,11 @@ import (
 )
 
 func main() {
-	symbol := model.AAPL
+	symbol := model.SPX
 	sim := simulator.NewSimulator([]string{symbol})
 
 	db := storage.NewStorage("./data/storage.db")
-	dca := strategy.NewDollarCostAverageStrategyOnDown(symbol)
+	dca := strategy.NewDollarCostAverageStrategy(symbol)
 
 	sim.Consumers = append(sim.Consumers, dca)
 
