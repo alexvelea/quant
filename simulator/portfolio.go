@@ -2,12 +2,17 @@ package simulator
 
 import (
 	"log"
+	"math"
 )
 
 type Portfolio struct {
 	Balance        map[string]float64
 	AvailableQuote float64
 	InvestedQuote  float64
+}
+
+func NewPortfolio() *Portfolio {
+	return &Portfolio{Balance: make(map[string]float64)}
 }
 
 func (e *Portfolio) getQuantity(symbol string) float64 {
@@ -51,5 +56,5 @@ func (e *Portfolio) LogProfit(market MarketViewer) {
 	for symbol, amount := range e.Balance {
 		log.Printf("%v -- %v @ %v\n", symbol, amount, market.GetPrice(symbol))
 	}
-	log.Printf("Profit margin:%v", (balance/e.InvestedQuote-1.0)*100)
+	log.Printf("Profit margin:%.2f%% / %.2f (log2)", (balance/e.InvestedQuote-1.0)*100, math.Log2(balance/e.InvestedQuote))
 }

@@ -16,7 +16,7 @@ type Simulator struct {
 var _ Interactor = (*Simulator)(nil)
 
 func NewSimulator(symbols []string) *Simulator {
-	portfolio := &Portfolio{Balance: make(map[string]float64)}
+	portfolio := NewPortfolio()
 	books := make([]*Book, 0)
 
 	for _, symbol := range symbols {
