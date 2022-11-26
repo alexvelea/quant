@@ -12,7 +12,7 @@ func main() {
 	sim := simulator.NewSimulator([]string{symbol})
 
 	db := storage.NewStorage("./data/storage.db")
-	dca := strategy.NewDollarCostAverageStrategy(symbol)
+	dca := strategy.NewDollarCostAverageStrategyOnDown(symbol)
 
 	sim.Consumers = append(sim.Consumers, dca)
 
