@@ -17,6 +17,6 @@ func main() {
 	nasdaq := crawler.NewNasdaq()
 	db := storage.NewStorage("./data/storage.db")
 
-	app.CrawlAndSave(nasdaq, model.AAPL, startTime, db)
-	app.CrawlAndSave(nasdaq, model.SPX, startTime, db)
+	app.ReadFromAPIAndSave(nasdaq, model.AAPL, startTime, db)
+	app.ReadFromAPIAndSave(nasdaq, model.SPX, startTime, db)
 }

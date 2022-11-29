@@ -15,5 +15,5 @@ func main() {
 	binance := crawler.NewBinance()
 	db := storage.NewStorage("./data/storage.db")
 
-	app.CrawlAndSave(binance, model.BTC, startTime, db)
+	app.ReadFromAPIAndSave(binance, model.BTC, startTime, db)
 }

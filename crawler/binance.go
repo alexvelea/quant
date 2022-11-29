@@ -16,6 +16,8 @@ type binanceCrawler struct {
 	client  *http.Client
 }
 
+var _ Crawler = (*binanceCrawler)(nil)
+
 func NewBinance() *binanceCrawler {
 	return &binanceCrawler{
 		baseURL: "https://api.binance.com",
@@ -84,7 +86,7 @@ func (bc *binanceCrawler) parseCandle(raw []interface{}) *model.Candle {
 	return c
 }
 
-func (bc *binanceCrawler) GetCandles(symbol string, interval model.TimeInterval) []*model.Candle {
+func (bc *binanceCrawler) ReadFromAPI(symbol string, interval model.TimeInterval) []*model.Candle {
 	params := url.Values{}
 	params.Add("symbol", bc.getSpecificSymbol(symbol))
 	params.Add("interval", bc.getSpecificInterval(interval.Duration))
@@ -110,4 +112,9 @@ func (bc *binanceCrawler) GetCandles(symbol string, interval model.TimeInterval)
 	}
 
 	return candles
+}
+
+func (bc *binanceCrawler) ReadCSV(symbol string, path string) []*model.Candle {
+	//TODO implement me
+	panic("implement me")
 }

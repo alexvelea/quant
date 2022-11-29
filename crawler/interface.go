@@ -5,5 +5,6 @@ import (
 )
 
 type Crawler interface {
-	GetCandles(symbol string, interval model.TimeInterval) []*model.Candle
+	ReadFromAPI(symbol string, interval model.TimeInterval) []*model.Candle
+	ReadCSV(symbol string, path string) []*model.Candle
 }

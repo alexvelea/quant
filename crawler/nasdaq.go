@@ -1,16 +1,16 @@
 package crawler
 
 import (
+	"encoding/csv"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"log"
 	"net/http"
 	"net/url"
+	"os"
 	"quant/model"
 	"quant/utils"
-	"reflect"
 	"time"
 )
 
@@ -19,24 +19,12 @@ const (
 	NasdaqIndex = "index"
 )
 
-func ReverseSlice(data interface{}) {
-	value := reflect.ValueOf(data)
-	if value.Kind() != reflect.Slice {
-		panic(errors.New("data must be a slice type"))
-	}
-	valueLen := value.Len()
-	for i := 0; i <= int((valueLen-1)/2); i++ {
-		reverseIndex := valueLen - 1 - i
-		tmp := value.Index(reverseIndex).Interface()
-		value.Index(reverseIndex).Set(value.Index(i))
-		value.Index(i).Set(reflect.ValueOf(tmp))
-	}
-}
-
 type nasdaqCrawler struct {
 	baseURL string
 	client  *http.Client
 }
+
+var _ Crawler = (*nasdaqCrawler)(nil)
 
 func NewNasdaq() *nasdaqCrawler {
 	return &nasdaqCrawler{
@@ -105,8 +93,8 @@ func (bc *nasdaqCrawler) getSymbolAssetClass(symbol string) string {
 	panic(fmt.Sprintf("unknown symbol %v", symbol))
 }
 
-// parseCandle got from a JSON response into a generic model.Candle
-func (bc *nasdaqCrawler) parseCandle(raw map[string]string) *model.Candle {
+// parseCandleFromJson got from a JSON response into a generic model.Candle
+func (bc *nasdaqCrawler) parseCandleFromJson(raw map[string]string) *model.Candle {
 	start, err := time.Parse("01/02/2006", raw["date"])
 	utils.PanicIfErr(err)
 
@@ -119,6 +107,27 @@ func (bc *nasdaqCrawler) parseCandle(raw map[string]string) *model.Candle {
 		Close: model.ParsePriceFromJSON(raw["close"]),
 		High:  model.ParsePriceFromJSON(raw["high"]),
 		Low:   model.ParsePriceFromJSON(raw["low"]),
+	}
+	c.Time.Duration = c.Time.End.Sub(c.Time.Start)
+
+	return c
+}
+
+// parseCandleFromJson got from a JSON response into a generic model.Candle
+func (bc *nasdaqCrawler) parseCandleFromCsv(raw []string) *model.Candle {
+	// Date,Close/Last,Volume,Open,High,Low
+	start, err := time.Parse("01/02/2006", raw[0])
+	utils.PanicIfErr(err)
+
+	c := &model.Candle{
+		Time: model.TimeInterval{
+			Start: start,
+			End:   start.Add(time.Duration(24) * time.Hour),
+		},
+		Open:  model.ParsePriceFromJSON(raw[3]),
+		Close: model.ParsePriceFromJSON(raw[1]),
+		High:  model.ParsePriceFromJSON(raw[4]),
+		Low:   model.ParsePriceFromJSON(raw[5]),
 	}
 	c.Time.Duration = c.Time.End.Sub(c.Time.Start)
 
@@ -150,7 +159,7 @@ type nasdaqCandleResponse struct {
 	}
 }
 
-func (bc *nasdaqCrawler) GetCandles(symbol string, interval model.TimeInterval) []*model.Candle {
+func (bc *nasdaqCrawler) ReadFromAPI(symbol string, interval model.TimeInterval) []*model.Candle {
 	if interval.Duration != time.Duration(24)*time.Hour {
 		panic("invalid duration for nasdaq crawler: only day accepted")
 	}
@@ -186,7 +195,7 @@ func (bc *nasdaqCrawler) GetCandles(symbol string, interval model.TimeInterval) 
 	}
 
 	rows := decoded.Data.TradesTable.Rows
-	ReverseSlice(rows)
+	utils.ReverseSlice(rows)
 
 	lastPrice := model.ParsePriceFromJSON(rows[0]["open"])
 	nextTime := interval.Start
@@ -196,7 +205,7 @@ func (bc *nasdaqCrawler) GetCandles(symbol string, interval model.TimeInterval) 
 	for i, nextCandle := 0, 0; i < numTicks; i += 1 {
 		var candle *model.Candle
 		if nextCandle < len(rows) {
-			candle = bc.parseCandle(rows[nextCandle])
+			candle = bc.parseCandleFromJson(rows[nextCandle])
 		}
 
 		// correct time
@@ -211,6 +220,57 @@ func (bc *nasdaqCrawler) GetCandles(symbol string, interval model.TimeInterval) 
 			candle.Symbol = symbol
 			candles = append(candles, candle)
 		}
+		nextTime = nextTime.Add(time.Duration(24) * time.Hour)
+	}
+
+	return candles
+}
+
+func (bc *nasdaqCrawler) ReadCSV(symbol string, path string) []*model.Candle {
+	// open file
+	f, err := os.Open(path)
+	utils.PanicIfErr(err)
+
+	// remember to close the file at the end of the program
+	defer func(f *os.File) {
+		utils.PanicIfErr(f.Close())
+	}(f)
+
+	// read csv values using csv.Reader
+	csvReader := csv.NewReader(f)
+	data, err := csvReader.ReadAll()
+	utils.PanicIfErr(err)
+
+	// omit first line
+	data = data[1:]
+	utils.ReverseSlice(data)
+
+	initialCandle := bc.parseCandleFromCsv(data[0])
+	lastPrice := initialCandle.Open
+	nextTime := initialCandle.Time.Start
+
+	candles := make([]*model.Candle, 0, len(data))
+
+	for i, nextCandle := 0, 0; i < len(data); i += 1 {
+		var candle *model.Candle
+		if nextCandle < len(data) {
+			candle = bc.parseCandleFromCsv(data[nextCandle])
+		}
+
+		// correct time
+		if candle != nil && candle.Time.Start == nextTime {
+			// check if candle is actually empty
+			if candle.Open == 0 {
+				candle = bc.emptyCandle(nextTime, lastPrice)
+			}
+
+			nextCandle += 1
+		} else {
+			candle = bc.emptyCandle(nextTime, lastPrice)
+		}
+		candle.Symbol = symbol
+		candles = append(candles, candle)
+		lastPrice = candle.Close
 		nextTime = nextTime.Add(time.Duration(24) * time.Hour)
 	}
 
