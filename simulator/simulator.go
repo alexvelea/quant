@@ -2,7 +2,6 @@ package simulator
 
 import (
 	"fmt"
-	"log"
 	"quant/model"
 	"quant/utils"
 )
@@ -45,8 +44,6 @@ func (s *Simulator) getBook(symbol string) (book *Book) {
 }
 
 func (s *Simulator) ProcessCandle(candle *model.Candle) {
-	log.Printf("Processing candle time:%v", candle.Time.Start.Format("2006-01-02"))
-
 	book := s.getBook(candle.Symbol)
 	book.OnPrice([]model.Price{candle.Open})
 	book.UpdatePrice(candle.Open)
