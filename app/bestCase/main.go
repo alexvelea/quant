@@ -2,8 +2,8 @@ package main
 
 import (
 	"log"
+	"quant/core"
 	"quant/model"
-	"quant/simulator"
 	"quant/storage"
 	"quant/strategy"
 	"quant/utils"
@@ -33,10 +33,6 @@ func getMinPriceInFuture(candles []*model.Candle, maxDuration *time.Duration) mo
 	return *bestPrice
 }
 
-type marketViewer struct{ price model.Price }
-
-func (mv marketViewer) GetPrice(string) model.Price { return mv.price }
-
 func DurationP(duration time.Duration) *time.Duration {
 	return &duration
 }
@@ -65,9 +61,9 @@ func main() {
 	}
 
 	for _, cfg := range configs {
-		portfolio := simulator.NewPortfolio()
+		portfolio := core.NewPortfolio()
 
-		sim := simulator.NewSimulator([]string{symbol})
+		sim := core.NewSimulator([]string{symbol})
 		dca := strategy.NewDollarCostAverageStrategyOnDown(symbol)
 		sim.Consumers = append(sim.Consumers, dca)
 
@@ -79,8 +75,8 @@ func main() {
 			portfolio.Invest(toInvest)
 			price := getMinPriceInFuture(candles[i:], cfg.maxDuration)
 
-			portfolio.ExecuteOrder(&simulator.Order{
-				Side:   simulator.BUY,
+			portfolio.ExecuteOrder(&core.Order{
+				Side:   core.BUY,
 				Quote:  utils.Float64P(toInvest),
 				Price:  price,
 				Symbol: symbol,
@@ -88,7 +84,7 @@ func main() {
 		}
 
 		log.Printf("maxDuration: %v", cfg.context)
-		portfolio.LogProfit(&marketViewer{price: lastPrice})
+		portfolio.LogProfit(&core.FixedMarketViewer{Price: lastPrice})
 		log.Println()
 	}
 }

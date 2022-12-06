@@ -2,8 +2,8 @@ package strategy
 
 import (
 	"log"
+	"quant/core"
 	"quant/model"
-	"quant/simulator"
 	"quant/utils"
 	"time"
 )
@@ -13,9 +13,9 @@ type dollarCostAverageOnDown struct {
 	pastPrices []model.Price
 }
 
-var _ simulator.Consumer = (*dollarCostAverageOnDown)(nil)
+var _ core.Consumer = (*dollarCostAverageOnDown)(nil)
 
-func (d *dollarCostAverageOnDown) OnNewCandle(sim simulator.Interactor, start time.Time) {
+func (d *dollarCostAverageOnDown) OnNewCandle(sim core.Interactor, start time.Time) {
 	toInvest := utils.GetNormalizedMedianIncome(start)
 	sim.GetPortfolio().Invest(toInvest)
 	available := sim.GetPortfolio().AvailableQuote
@@ -36,8 +36,8 @@ func (d *dollarCostAverageOnDown) OnNewCandle(sim simulator.Interactor, start ti
 		}
 
 		size := (available / 3.0) * (numSmaller / float64(pastSize))
-		sim.MarketOrder(&simulator.Order{
-			Side:   simulator.BUY,
+		sim.MarketOrder(&core.Order{
+			Side:   core.BUY,
 			Symbol: d.Symbol,
 			Quote:  utils.Float64P(size),
 			OnExecuted: func() {
@@ -47,10 +47,10 @@ func (d *dollarCostAverageOnDown) OnNewCandle(sim simulator.Interactor, start ti
 	}
 }
 
-func (d *dollarCostAverageOnDown) OnPriceUpdate(sim simulator.Interactor, newPrice model.Price) {
+func (d *dollarCostAverageOnDown) OnPriceUpdate(sim core.Interactor, newPrice model.Price) {
 }
 
-func NewDollarCostAverageStrategyOnDown(symbol string) simulator.Consumer {
+func NewDollarCostAverageStrategyOnDown(symbol string) core.Consumer {
 	return &dollarCostAverageOnDown{
 		Symbol:     symbol,
 		pastPrices: make([]model.Price, 0),

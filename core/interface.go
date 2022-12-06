@@ -1,4 +1,4 @@
-package simulator
+package core
 
 import (
 	"quant/model"
@@ -15,6 +15,10 @@ type Interactor interface {
 
 	MarketViewer
 	GetPortfolio() *Portfolio
+}
+
+type Transformer interface {
+	TransformCandles([]*model.Candle) []*model.Candle
 }
 
 type Consumer interface {

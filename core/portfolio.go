@@ -1,4 +1,4 @@
-package simulator
+package core
 
 import (
 	"fmt"
@@ -33,6 +33,11 @@ func (e *Portfolio) AssetsValue(market MarketViewer) float64 {
 		balance += market.GetPrice(symbol).GetQuote(quantity)
 	}
 	return balance
+}
+
+func (e *Portfolio) TotalAssets(market MarketViewer) float64 {
+	assets := e.AssetsValue(market)
+	return e.AvailableQuote - e.BorrowedQuote + assets
 }
 
 func (e *Portfolio) ExecuteOrder(o *Order) {

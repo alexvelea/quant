@@ -1,15 +1,15 @@
 package main
 
 import (
+	"quant/core"
 	"quant/model"
-	"quant/simulator"
 	"quant/storage"
 	"quant/strategy"
 )
 
 func main() {
 	symbol := model.SPX
-	sim := simulator.NewSimulator([]string{symbol})
+	sim := core.NewSimulator([]string{symbol})
 
 	db := storage.NewStorage("./data/storage.db")
 	dca := strategy.NewDollarCostAverageStrategy(symbol)

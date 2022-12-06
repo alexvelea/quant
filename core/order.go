@@ -1,4 +1,4 @@
-package simulator
+package core
 
 import "quant/model"
 
