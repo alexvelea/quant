@@ -5,6 +5,7 @@ import (
 	"quant/model"
 	"quant/storage"
 	"quant/strategy"
+	"quant/transformers"
 )
 
 func main() {
@@ -17,6 +18,10 @@ func main() {
 	sim.Consumers = append(sim.Consumers, dca)
 
 	candles := db.GetCandles(symbol)
+
+	//transform all candles by applying a 4x leverage rebalancer to it
+	candles = (&transformers.Rebalancer{Leverage: 4}).TransformCandles(candles)
+
 	for _, candle := range candles {
 		sim.ProcessCandle(candle)
 	}
