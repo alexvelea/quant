@@ -1,11 +1,11 @@
 package strategy
 
 import (
-	"log"
+	"time"
+
 	"quant/core"
 	"quant/model"
 	"quant/utils"
-	"time"
 )
 
 type dollarCostAverage struct {
@@ -22,9 +22,6 @@ func (d dollarCostAverage) OnNewCandle(sim core.Interactor, start time.Time) {
 		Side:   core.BUY,
 		Symbol: d.Symbol,
 		Quote:  utils.Float64P(toInvest),
-		OnExecuted: func() {
-			log.Printf("Bought some at %v\n", sim.GetPrice(d.Symbol))
-		},
 	})
 }
 

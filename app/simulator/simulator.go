@@ -5,7 +5,6 @@ import (
 	"quant/model"
 	"quant/storage"
 	"quant/strategy"
-	"quant/transformers"
 )
 
 func main() {
@@ -19,8 +18,11 @@ func main() {
 
 	candles := db.GetCandles(symbol)
 
-	//transform all candles by applying a 4x leverage rebalancer to it
-	candles = (&transformers.Rebalancer{Leverage: 4}).TransformCandles(candles)
+	// transform all candles by applying a 4x leverage rebalancer to it
+	//candles = (&transformers.Rebalancer{Leverage: 4}).TransformCandles(candles)
+
+	// transform all candles by replacing each one with the minimum price in the next MaxDuration
+	//candles = (&transformers.CrystalGlobe{MaxDuration: utils.Month * time.Duration(3)}).TransformCandles(candles)
 
 	for _, candle := range candles {
 		sim.ProcessCandle(candle)
